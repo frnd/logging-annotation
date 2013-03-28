@@ -27,7 +27,7 @@ public class MethodLoggingAdvice {
     @Before(value = "execution(* *(..)) and @annotation(logAnnotation)", argNames = "logAnnotation")
     public void logBefore(JoinPoint call, Logging logAnnotation) {
         Logger logger = extractLogger(call);
-        if (isSeverityEnabled(logAnnotation.severity(), logger)) {
+        if (!logAnnotation.severity().isEnabled(logger)) {
             return;
         }
         String message = MessageType.BEFORE.getMessage(logAnnotation, call);
@@ -46,7 +46,7 @@ public class MethodLoggingAdvice {
     public void logReturn(JoinPoint call, Logging logAnnotation,
             Object returnValue) {
         Logger logger = extractLogger(call);
-        if (isSeverityEnabled(logAnnotation.severity(), logger)) {
+        if (!logAnnotation.severity().isEnabled(logger)) {
             return;
         }
         String message = MessageType.AFTER.getMessage(logAnnotation, call);
@@ -65,7 +65,7 @@ public class MethodLoggingAdvice {
     public void logException(JoinPoint call, Logging logAnnotation,
             Throwable exception) {
         Logger logger = extractLogger(call);
-        if (isSeverityEnabled(Severity.ERROR, logger)) {
+        if (!logAnnotation.severity().isEnabled(logger)) {
             return;
         }
         String message = MessageType.EXCEPTION.getMessage(logAnnotation, call);
@@ -90,32 +90,6 @@ public class MethodLoggingAdvice {
         Class<?> declaringType = signature.getDeclaringType();
         Logger logger = LoggerFactory.getLogger(declaringType);
         return logger;
-    }
-    
-    private Boolean isSeverityEnabled(Severity severity, Logger logger) {
-        Boolean status;
-        
-        switch (severity) {
-            case TRACE:
-                status = logger.isTraceEnabled();
-                break;
-            case DEBUG:
-                status = logger.isDebugEnabled();
-                break;
-            case INFO:
-                status = logger.isInfoEnabled();
-                break;
-            case WARN:
-                status = logger.isWarnEnabled();
-                break;
-            case ERROR:
-                status = logger.isErrorEnabled();
-                break;
-            default:
-                status = false;
-        }
-        
-        return status;
     }
     
     private enum MessageType {
