@@ -1,3 +1,26 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2013 fernando.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package es.frnd.logging;
 
 import org.slf4j.Logger;
@@ -13,7 +36,7 @@ public enum Severity {
      */
     TRACE() {
         @Override
-        void log(Logger l, String message, Object[] parameters) {
+        void log(Logger l, String message, Object... parameters) {
             l.trace(message, parameters);
         }
 
@@ -33,7 +56,7 @@ public enum Severity {
      */
     DEBUG() {
         @Override
-        void log(Logger l, String message, Object[] parameters) {
+        void log(Logger l, String message, Object... parameters) {
             l.debug(message, parameters);
         }
 
@@ -53,7 +76,7 @@ public enum Severity {
      */
     INFO {
         @Override
-        void log(Logger l, String message, Object[] parameters) {
+        void log(Logger l, String message, Object... parameters) {
             l.info(message, parameters);
         }
 
@@ -73,7 +96,7 @@ public enum Severity {
      */
     WARN {
         @Override
-        void log(Logger l, String message, Object[] parameters) {
+        void log(Logger l, String message, Object... parameters) {
             l.warn(message, parameters);
         }
 
@@ -93,7 +116,7 @@ public enum Severity {
      */
     ERROR {
         @Override
-        void log(Logger l, String message, Object[] parameters) {
+        void log(Logger l, String message, Object... parameters) {
             l.error(message, parameters);
         }
 
@@ -115,7 +138,7 @@ public enum Severity {
      * @param message the log message (template) to emit.
      * @param parameters values to fill the message template with.
      */
-    abstract void log(Logger l, String message, Object[] parameters);
+    abstract void log(Logger l, String message, Object... parameters);
 
     /**
      * Log an exceptional message at the appropriate level.

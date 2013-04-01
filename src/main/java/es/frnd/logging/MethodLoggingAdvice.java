@@ -1,11 +1,38 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2013 fernando.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package es.frnd.logging;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +57,12 @@ public class MethodLoggingAdvice {
         if (!logAnnotation.severity().isEnabled(logger)) {
             return;
         }
-        String message = MessageType.BEFORE.getMessage(logAnnotation, call);
-        emit(call, message, logAnnotation.severity(),
-                call.getArgs());
+        MethodSignature signature = (MethodSignature) call.getSignature();
+        Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
+        String methodName = signature.getName();
+        String message = MessageCache.BEFORE.getMessage(logAnnotation, methodName, annotations);
+        final Object[] args = MessageCache.extractArguments(call.getArgs(), annotations);
+        logAnnotation.severity().log(logger, message, args);
     }
 
     /**
@@ -49,9 +79,11 @@ public class MethodLoggingAdvice {
         if (!logAnnotation.severity().isEnabled(logger)) {
             return;
         }
-        String message = MessageType.AFTER.getMessage(logAnnotation, call);
-        emit(call, message, logAnnotation.severity(),
-                returnValue);
+        MethodSignature signature = (MethodSignature) call.getSignature();
+        Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
+        String methodName = signature.getName();
+        String message = MessageCache.AFTER.getMessage(logAnnotation, methodName, annotations);
+        logAnnotation.severity().log(logger, message, returnValue);
     }
 
     /**
@@ -68,77 +100,27 @@ public class MethodLoggingAdvice {
         if (!logAnnotation.severity().isEnabled(logger)) {
             return;
         }
-        String message = MessageType.EXCEPTION.getMessage(logAnnotation, call);
-        emitException(call, message,
-                logAnnotation.severity(), exception);
+        MethodSignature signature = (MethodSignature) call.getSignature();
+        Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
+        String methodName = signature.getName();
+        String message = MessageCache.EXCEPTION.getMessage(logAnnotation, methodName, annotations);
+        logAnnotation.severity().logException(logger, message, exception);
     }
-    
-    private void emit(JoinPoint call, String message, Severity severity,
-            Object... values) {
-        Logger logger = extractLogger(call);
-        severity.log(logger, message, values);
-    }
-    
-    private void emitException(JoinPoint call, String message,
-            Severity severity, Throwable exception) {
-        Logger logger = extractLogger(call);
-        severity.logException(logger, message, exception);
-    }
-    
-    private Logger extractLogger(JoinPoint call) {
-        Signature signature = call.getSignature();
-        Class<?> declaringType = signature.getDeclaringType();
-        Logger logger = LoggerFactory.getLogger(declaringType);
-        return logger;
-    }
-    
-    private enum MessageType {
-        
-        BEFORE() {
-            @Override
-            protected String create(Logging logAnnotation, JoinPoint call) {
-                String message = logAnnotation.enterText();
-                //If no message create the default message.
-                if (Logging.DEFAULT_TEXT.equals(message)) {
-                    message = "Calling method " + call.getSignature().getName() + " with args";
-                    for (int i = 0; i < call.getArgs().length; i++) {
-                        message = message.concat(" {}");
-                    }
-                }
-                return message;
-            }
-        },
-        AFTER() {
-            @Override
-            protected String create(Logging logAnnotation, JoinPoint call) {
-                String message = logAnnotation.returnText();
-                //If no message create the default message.
-                if (Logging.DEFAULT_TEXT.equals(message)) {
-                    message = "Returning method " + call.getSignature().getName() + " with {}";
-                }
-                return message;
-            }
-        },
-        EXCEPTION() {
-            @Override
-            protected String create(Logging logAnnotation, JoinPoint call) {
-                return logAnnotation.exceptionText();
-            }
-        };
 
-        /**
-         * Abstract methos for creating message depending on the specific
-         * pointcut.
-         *
-         * @param logAnnotation
-         * @param call
-         * @return
-         */
-        protected abstract String create(Logging logAnnotation, JoinPoint call);
+    /**
+     * Extract the logger for the specific class of the poincut
+     * @param call
+     * @return 
+     */
+    private Logger extractLogger(JoinPoint call) {
+        Class<?> declaringType;
+        Signature signature;
+        Logger logger;
         
-        protected String getMessage(Logging logAnnotation, JoinPoint call) {
-            // TODO caching the messages!
-            return create(logAnnotation, call);
-        }
+        signature = call.getSignature();
+        declaringType = signature.getDeclaringType();
+        logger = LoggerFactory.getLogger(declaringType);
+        
+        return logger;
     }
 }
