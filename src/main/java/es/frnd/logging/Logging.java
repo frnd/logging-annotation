@@ -56,9 +56,4 @@ public @interface Logging {
      */
     Severity severity() default Severity.DEBUG;
 
-    /**
-     *
-     * @return
-     */
-    boolean isDefaultEnterText() default false;
 }

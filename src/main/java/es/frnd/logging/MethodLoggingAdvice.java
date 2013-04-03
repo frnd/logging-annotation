@@ -23,9 +23,8 @@
  */
 package es.frnd.logging;
 
+import es.frnd.logging.MessageCache.MessageType;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.List;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -44,6 +43,8 @@ import org.slf4j.LoggerFactory;
 @Aspect
 public class MethodLoggingAdvice {
 
+    MessageCache messageCache = new MessageCache();
+
     /**
      * Emits the log message from a {@link Logging} annotation, using the method
      * call's parameter list as the formatting parameters.
@@ -54,15 +55,16 @@ public class MethodLoggingAdvice {
     @Before(value = "execution(* *(..)) and @annotation(logAnnotation)", argNames = "logAnnotation")
     public void logBefore(JoinPoint call, Logging logAnnotation) {
         Logger logger = extractLogger(call);
-        if (!logAnnotation.severity().isEnabled(logger)) {
+        final Severity severity = logAnnotation.severity();
+        if (!severity.isEnabled(logger)) {
             return;
         }
         MethodSignature signature = (MethodSignature) call.getSignature();
         Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
         String methodName = signature.getName();
-        String message = MessageCache.BEFORE.getMessage(logAnnotation, methodName, annotations);
-        final Object[] args = MessageCache.extractArguments(call.getArgs(), annotations);
-        logAnnotation.severity().log(logger, message, args);
+        String message = messageCache.getMessage(MessageType.BEFORE, logAnnotation, methodName, annotations);
+        final Object[] args = messageCache.extractArguments(call.getArgs(), annotations);
+        severity.log(logger, message, args);
     }
 
     /**
@@ -76,14 +78,15 @@ public class MethodLoggingAdvice {
     public void logReturn(JoinPoint call, Logging logAnnotation,
             Object returnValue) {
         Logger logger = extractLogger(call);
-        if (!logAnnotation.severity().isEnabled(logger)) {
+        final Severity severity = logAnnotation.severity();
+        if (!severity.isEnabled(logger)) {
             return;
         }
         MethodSignature signature = (MethodSignature) call.getSignature();
         Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
         String methodName = signature.getName();
-        String message = MessageCache.AFTER.getMessage(logAnnotation, methodName, annotations);
-        logAnnotation.severity().log(logger, message, returnValue);
+        String message = messageCache.getMessage(MessageType.AFTER, logAnnotation, methodName, annotations);
+        severity.log(logger, message, returnValue);
     }
 
     /**
@@ -97,30 +100,32 @@ public class MethodLoggingAdvice {
     public void logException(JoinPoint call, Logging logAnnotation,
             Throwable exception) {
         Logger logger = extractLogger(call);
-        if (!logAnnotation.severity().isEnabled(logger)) {
+        final Severity severity = logAnnotation.severity();
+        if (!severity.isEnabled(logger)) {
             return;
         }
         MethodSignature signature = (MethodSignature) call.getSignature();
         Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
         String methodName = signature.getName();
-        String message = MessageCache.EXCEPTION.getMessage(logAnnotation, methodName, annotations);
-        logAnnotation.severity().logException(logger, message, exception);
+        String message = messageCache.getMessage(MessageType.EXCEPTION, logAnnotation, methodName, annotations);
+        severity.logException(logger, message, exception);
     }
 
     /**
      * Extract the logger for the specific class of the poincut
+     *
      * @param call
-     * @return 
+     * @return
      */
     private Logger extractLogger(JoinPoint call) {
         Class<?> declaringType;
         Signature signature;
         Logger logger;
-        
+
         signature = call.getSignature();
         declaringType = signature.getDeclaringType();
         logger = LoggerFactory.getLogger(declaringType);
-        
+
         return logger;
     }
 }

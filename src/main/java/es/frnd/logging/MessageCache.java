@@ -24,87 +24,92 @@
 package es.frnd.logging;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
+ * A cache for the message formatting pattern.
  *
  * @author fernando
  */
-public enum MessageCache {
+public class MessageCache {
 
-    BEFORE() {
-        @Override
-        protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-            String message = logAnnotation.enterText();
-            //If no message create the default message.
-            if (Logging.DEFAULT_TEXT.equals(message)) {
-                message = "Calling method " + methodName + " with args";
-                message = message.concat(extractParams(annotations));
-            }
-            return message;
-        }
+    public enum MessageType {
 
-        private String extractParams(Annotation[][] annotations) {
-            StringBuilder buffer = new StringBuilder();
-            for (int i = 0; i < annotations.length; i++) {
-                if (!containsExclude(annotations[i])) {
-                    buffer.append(" {}");
+        BEFORE() {
+            @Override
+            protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
+                String message = logAnnotation.enterText();
+                //If no message create the default message.
+                if (Logging.DEFAULT_TEXT.equals(message)) {
+                    message = "Calling method " + methodName + " with args";
+                    message = message.concat(extractParams(annotations));
                 }
+                return message;
             }
-            return buffer.toString();
-        }
 
-        private boolean containsExclude(Annotation[] annotations) {
-            for (int i = 0; i < annotations.length; i++) {
-                Annotation annotation = annotations[i];
-                if (LogExclude.class.isInstance(annotation)) {
-                    return true;
+            private String extractParams(Annotation[][] annotations) {
+                StringBuilder buffer = new StringBuilder();
+                for (int i = 0; i < annotations.length; i++) {
+                    if (!containsExclude(annotations[i])) {
+                        buffer.append(" {}");
+                    }
                 }
+                return buffer.toString();
             }
-            return false;
-        }
-    },
-    AFTER() {
-        @Override
-        protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-            String message = logAnnotation.returnText();
-            //If no message create the default message.
-            if (Logging.DEFAULT_TEXT.equals(message)) {
-                message = "Returning method " + methodName + " with {}";
+        },
+        AFTER() {
+            @Override
+            protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
+                String message = logAnnotation.returnText();
+                //If no message create the default message.
+                if (Logging.DEFAULT_TEXT.equals(message)) {
+                    message = "Returning method " + methodName + " with {}";
+                }
+                return message;
             }
-            return message;
-        }
-    },
-    EXCEPTION() {
-        @Override
-        protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-            return logAnnotation.exceptionText();
-        }
-    };
+        },
+        EXCEPTION() {
+            @Override
+            protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
+                return logAnnotation.exceptionText();
+            }
+        };
 
-    public static Object[] extractArguments(Object[] args, Annotation[][] annotations) {
-        List<Object> asList = Arrays.asList(args);
+        /**
+         * Abstract method for creating message depending on the specific
+         * pointcut.
+         *
+         * @param logAnnotation
+         * @param call
+         * @return
+         */
+        protected abstract String create(Logging logAnnotation, String methodName, Annotation[][] annotations);
+    }
+
+    protected String getMessage(MessageType type, Logging logAnnotation, String methodName, Annotation[][] annotations) {
+        // TODO caching the messages! (call.getStaticPart().getId();)
+        final String messagePattern = type.create(logAnnotation, methodName, annotations);
+        return messagePattern;
+    }
+
+    protected Object[] extractArguments(Object[] args, Annotation[][] annotations) {
+        List<Object> asList = new ArrayList<Object>();
         for (int i = 0; i < annotations.length; i++) {
             Annotation[] annotation = annotations[i];
-            if (LogExclude.class.isInstance(annotation)) {
-                asList.remove(i);
+            if (!containsExclude(annotation)) {
+                asList.add(args[i]);
             }
         }
         return asList.toArray();
     }
 
-    /**
-     * Abstract methos for creating message depending on the specific pointcut.
-     *
-     * @param logAnnotation
-     * @param call
-     * @return
-     */
-    protected abstract String create(Logging logAnnotation, String methodName, Annotation[][] annotations);
-
-    protected String getMessage(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-        // TODO caching the messages! (call.getStaticPart().getId();)
-        return create(logAnnotation, methodName, annotations);
+    private static boolean containsExclude(Annotation[] annotations) {
+        for (int i = 0; i < annotations.length; i++) {
+            Annotation annotation = annotations[i];
+            return LogExclude.class.equals(annotation.annotationType());
+        }
+        return false;
     }
 }

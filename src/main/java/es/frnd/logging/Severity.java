@@ -150,7 +150,8 @@ public enum Severity {
     abstract void logException(Logger l, String message, Throwable exception);
 
     /**
-     * Test if this severiti is enabled in the logger
+     * Test if this severity is enabled in the logger.
+     * 
      * @param l the logger to check the severity.
      * @return 
      */
