@@ -48,7 +48,7 @@ public class MessageCacheTest {
     Logging defaultLogAnnotation = new Logging() {
         @Override
         public String enterText() {
-            return null;
+            return DEFAULT_ENTER_TEXT;
         }
 
         @Override

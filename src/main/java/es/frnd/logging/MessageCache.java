@@ -34,19 +34,15 @@ import java.util.List;
  */
 public class MessageCache {
 
-    public static final String DEFAULT_ENTER_TEXT = "Calling method {} with args";
-
     public enum MessageType {
 
         BEFORE() {
             @Override
             protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
                 String message;
-                if (logAnnotation.enterText() == null) {
-                    message = DEFAULT_ENTER_TEXT;
+                message = logAnnotation.enterText();
+                if (isDefaultMessage(logAnnotation)) {
                     message = message.concat(extractParams(annotations));
-                } else {
-                    message = logAnnotation.enterText();
                 }
                 return message;
             }
@@ -59,6 +55,10 @@ public class MessageCache {
                     }
                 }
                 return buffer.toString();
+            }
+
+            private boolean isDefaultMessage(Logging logAnnotation) {
+                return Logging.DEFAULT_ENTER_TEXT.equals(logAnnotation.enterText());
             }
         },
         AFTER() {

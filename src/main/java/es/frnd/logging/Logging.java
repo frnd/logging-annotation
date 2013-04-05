@@ -40,10 +40,11 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Logging {
 
-    public static final String DEFAULT_RETURN_TEXT = "Returning method {} with {}";
-    public static final String DEFAULT_EXCEPTION_TEXT = "Method {} is trowing an exception: {}";
+    static final String DEFAULT_ENTER_TEXT = "Calling method {} with args";
+    static final String DEFAULT_RETURN_TEXT = "Returning method {} with {}";
+    static final String DEFAULT_EXCEPTION_TEXT = "Method {} is trowing an exception: {}";
 
-    String enterText();
+    String enterText() default DEFAULT_ENTER_TEXT;
 
     String returnText() default DEFAULT_RETURN_TEXT;
 
