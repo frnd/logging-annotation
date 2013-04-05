@@ -23,6 +23,9 @@
  */
 package es.frnd.logging;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.slf4j.Logger;
 
 /**
@@ -36,13 +39,13 @@ public enum Severity {
      */
     TRACE() {
         @Override
-        void log(Logger l, String message, Object... parameters) {
-            l.trace(message, parameters);
+        void log(Logger l, String message, String methodName, Object... parameters) {
+            l.trace(message, mergeMethodNameWithParameters(methodName, parameters));
         }
 
         @Override
-        void logException(Logger l, String message, Throwable exception) {
-            l.trace(message, exception);
+        void logException(Logger l, String message, String methodName, Throwable exception) {
+            l.trace(message, new Object[] {methodName, exception});
         }
 
         @Override
@@ -56,15 +59,15 @@ public enum Severity {
      */
     DEBUG() {
         @Override
-        void log(Logger l, String message, Object... parameters) {
-            l.debug(message, parameters);
+        void log(Logger l, String message, String methodName, Object... parameters) {
+            l.debug(message, mergeMethodNameWithParameters(methodName, parameters));
         }
 
         @Override
-        void logException(Logger l, String message, Throwable exception) {
-            l.debug(message, exception);
+        void logException(Logger l, String message, String methodName, Throwable exception) {
+            l.debug(message, new Object[] {methodName, exception});
         }
-        
+
         @Override
         boolean isEnabled(Logger l) {
             return l.isDebugEnabled();
@@ -76,15 +79,15 @@ public enum Severity {
      */
     INFO {
         @Override
-        void log(Logger l, String message, Object... parameters) {
-            l.info(message, parameters);
+        void log(Logger l, String message, String methodName, Object... parameters) {
+            l.info(message, mergeMethodNameWithParameters(methodName, parameters));
         }
 
         @Override
-        void logException(Logger l, String message, Throwable exception) {
-            l.info(message, exception);
+        void logException(Logger l, String message, String methodName, Throwable exception) {
+            l.info(message, new Object[] {methodName, exception});
         }
-        
+
         @Override
         boolean isEnabled(Logger l) {
             return l.isInfoEnabled();
@@ -96,15 +99,15 @@ public enum Severity {
      */
     WARN {
         @Override
-        void log(Logger l, String message, Object... parameters) {
-            l.warn(message, parameters);
+        void log(Logger l, String message, String methodName, Object... parameters) {
+            l.warn(message, mergeMethodNameWithParameters(methodName, parameters));
         }
 
         @Override
-        void logException(Logger l, String message, Throwable exception) {
-            l.warn(message, exception);
+        void logException(Logger l, String message, String methodName, Throwable exception) {
+            l.warn(message, new Object[] {methodName, exception});
         }
-        
+
         @Override
         boolean isEnabled(Logger l) {
             return l.isWarnEnabled();
@@ -116,15 +119,15 @@ public enum Severity {
      */
     ERROR {
         @Override
-        void log(Logger l, String message, Object... parameters) {
-            l.error(message, parameters);
+        void log(Logger l, String message, String methodName, Object... parameters) {
+            l.error(message, mergeMethodNameWithParameters(methodName, parameters));
         }
 
         @Override
-        void logException(Logger l, String message, Throwable exception) {
-            l.error(message, exception);
+        void logException(Logger l, String message, String methodName, Throwable exception) {
+            l.error(message, new Object[] {methodName, exception});
         }
-        
+
         @Override
         boolean isEnabled(Logger l) {
             return l.isErrorEnabled();
@@ -138,7 +141,7 @@ public enum Severity {
      * @param message the log message (template) to emit.
      * @param parameters values to fill the message template with.
      */
-    abstract void log(Logger l, String message, Object... parameters);
+    abstract void log(Logger l, String message, String methodName, Object... parameters);
 
     /**
      * Log an exceptional message at the appropriate level.
@@ -147,13 +150,27 @@ public enum Severity {
      * @param message the log message to emit.
      * @param exception the exception to log.
      */
-    abstract void logException(Logger l, String message, Throwable exception);
+    abstract void logException(Logger l, String message, String methodName, Throwable exception);
 
     /**
      * Test if this severity is enabled in the logger.
-     * 
+     *
      * @param l the logger to check the severity.
-     * @return 
+     * @return
      */
     abstract boolean isEnabled(Logger l);
+
+    /**
+     * Creates a list that contains the method name and the parameters.
+     * 
+     * @param methodName
+     * @param parameters
+     * @return 
+     */
+    private static Object[] mergeMethodNameWithParameters(String methodName, Object[] parameters) {
+        List<Object> mergedList = new ArrayList<Object>(parameters.length + 1);
+        mergedList.add(methodName);
+        Collections.addAll(mergedList, parameters);
+        return mergedList.toArray();
+    }
 }

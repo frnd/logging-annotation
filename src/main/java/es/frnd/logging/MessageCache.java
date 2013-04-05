@@ -25,7 +25,6 @@ package es.frnd.logging;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,16 +34,19 @@ import java.util.List;
  */
 public class MessageCache {
 
+    public static final String DEFAULT_ENTER_TEXT = "Calling method {} with args";
+
     public enum MessageType {
 
         BEFORE() {
             @Override
             protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-                String message = logAnnotation.enterText();
-                //If no message create the default message.
-                if (Logging.DEFAULT_TEXT.equals(message)) {
-                    message = "Calling method " + methodName + " with args";
+                String message;
+                if (logAnnotation.enterText() == null) {
+                    message = DEFAULT_ENTER_TEXT;
                     message = message.concat(extractParams(annotations));
+                } else {
+                    message = logAnnotation.enterText();
                 }
                 return message;
             }
@@ -62,18 +64,15 @@ public class MessageCache {
         AFTER() {
             @Override
             protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-                String message = logAnnotation.returnText();
-                //If no message create the default message.
-                if (Logging.DEFAULT_TEXT.equals(message)) {
-                    message = "Returning method " + methodName + " with {}";
-                }
-                return message;
+                String returnText = logAnnotation.returnText();
+                return returnText;
             }
         },
         EXCEPTION() {
             @Override
             protected String create(Logging logAnnotation, String methodName, Annotation[][] annotations) {
-                return logAnnotation.exceptionText();
+                final String exceptionText = logAnnotation.exceptionText();
+                return exceptionText;
             }
         };
 

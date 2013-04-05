@@ -40,12 +40,12 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Logging {
 
-    public static final String DEFAULT_TEXT = "";
-    public static final String DEFAULT_EXCEPTION_TEXT = "Trowing exception {}";
+    public static final String DEFAULT_RETURN_TEXT = "Returning method {} with {}";
+    public static final String DEFAULT_EXCEPTION_TEXT = "Method {} is trowing an exception: {}";
 
-    String enterText() default DEFAULT_TEXT;
+    String enterText();
 
-    String returnText() default DEFAULT_TEXT;
+    String returnText() default DEFAULT_RETURN_TEXT;
 
     String exceptionText() default DEFAULT_EXCEPTION_TEXT;
 
@@ -55,5 +55,4 @@ public @interface Logging {
      * @return the log severity for the message.
      */
     Severity severity() default Severity.DEBUG;
-
 }

@@ -64,7 +64,7 @@ public class MethodLoggingAdvice {
         String methodName = signature.getName();
         String message = messageCache.getMessage(MessageType.BEFORE, logAnnotation, methodName, annotations);
         final Object[] args = messageCache.extractArguments(call.getArgs(), annotations);
-        severity.log(logger, message, args);
+        severity.log(logger, message, methodName, args);
     }
 
     /**
@@ -86,7 +86,7 @@ public class MethodLoggingAdvice {
         Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
         String methodName = signature.getName();
         String message = messageCache.getMessage(MessageType.AFTER, logAnnotation, methodName, annotations);
-        severity.log(logger, message, returnValue);
+        severity.log(logger, message, methodName, returnValue);
     }
 
     /**
@@ -108,7 +108,7 @@ public class MethodLoggingAdvice {
         Annotation[][] annotations = signature.getMethod().getParameterAnnotations();
         String methodName = signature.getName();
         String message = messageCache.getMessage(MessageType.EXCEPTION, logAnnotation, methodName, annotations);
-        severity.logException(logger, message, exception);
+        severity.logException(logger, message, methodName, exception);
     }
 
     /**

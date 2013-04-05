@@ -48,17 +48,43 @@ public class MessageCacheTest {
     Logging defaultLogAnnotation = new Logging() {
         @Override
         public String enterText() {
-            return DEFAULT_TEXT;
+            return null;
         }
 
         @Override
         public String returnText() {
-            return DEFAULT_TEXT;
+            return DEFAULT_RETURN_TEXT;
         }
 
         @Override
         public String exceptionText() {
             return DEFAULT_EXCEPTION_TEXT;
+        }
+
+        @Override
+        public Severity severity() {
+            return Severity.INFO;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Logging.class;
+        }
+    };
+    Logging customMessagesLogAnnotation = new Logging() {
+        @Override
+        public String enterText() {
+            return "The method was caled.";
+        }
+
+        @Override
+        public String returnText() {
+            return "Return";
+        }
+
+        @Override
+        public String exceptionText() {
+            return "Exception";
         }
 
         @Override
@@ -105,7 +131,7 @@ public class MessageCacheTest {
         type = MessageType.BEFORE;
         methodName = "methodName";
         annotations = new Annotation[][]{{}, {exclude}, {}, {}};
-        String expResult = "Calling method " + methodName + " with args {} {} {}";
+        String expResult = "Calling method {} with args {} {} {}";
 
         String result = instance.getMessage(type, defaultLogAnnotation, methodName, annotations);
 
@@ -114,9 +140,56 @@ public class MessageCacheTest {
         type = MessageType.BEFORE;
         methodName = "methodExcludeAll";
         annotations = new Annotation[][]{{exclude}, {exclude}, {exclude}, {exclude}};
-        expResult = "Calling method " + methodName + " with args";
+        expResult = "Calling method {} with args";
 
         result = instance.getMessage(type, defaultLogAnnotation, methodName, annotations);
+
+        assertEquals(expResult, result);
+
+        type = MessageType.AFTER;
+        methodName = "methodName";
+        annotations = new Annotation[][]{{exclude}, {exclude}, {exclude}, {exclude}};
+        expResult = "Returning method {} with {}";
+
+        result = instance.getMessage(type, defaultLogAnnotation, methodName, annotations);
+
+        assertEquals(expResult, result);
+
+        type = MessageType.EXCEPTION;
+        methodName = "methodName";
+        annotations = new Annotation[][]{{exclude}, {exclude}, {exclude}, {exclude}};
+        expResult = "Method {} is trowing an exception: {}";
+
+        result = instance.getMessage(type, defaultLogAnnotation, methodName, annotations);
+
+        assertEquals(expResult, result);
+        
+        
+        
+        type = MessageType.BEFORE;
+        methodName = "methodName";
+        annotations = new Annotation[][]{{}, {exclude}, {}, {}};
+        expResult = "The method was caled.";
+
+        result = instance.getMessage(type, customMessagesLogAnnotation, methodName, annotations);
+
+        assertEquals(expResult, result);
+
+        type = MessageType.AFTER;
+        methodName = "methodExcludeAll";
+        annotations = new Annotation[][]{{exclude}, {exclude}, {exclude}, {exclude}};
+        expResult = "Return";
+
+        result = instance.getMessage(type, customMessagesLogAnnotation, methodName, annotations);
+
+        assertEquals(expResult, result);
+
+        type = MessageType.EXCEPTION;
+        methodName = "methodName";
+        annotations = new Annotation[][]{{exclude}, {exclude}, {exclude}, {exclude}};
+        expResult = "Exception";
+
+        result = instance.getMessage(type, customMessagesLogAnnotation, methodName, annotations);
 
         assertEquals(expResult, result);
     }
@@ -130,23 +203,23 @@ public class MessageCacheTest {
         Annotation[][] annotations;
         Object[] expResult;
         Object[] result;
-        
+
         System.out.println("extractArguments");
-        
-        args = new Object [] {"1","2","3","4"};
+
+        args = new Object[]{"1", "2", "3", "4"};
         annotations = new Annotation[][]{{}, {exclude}, {}, {}};
-        expResult = new Object [] {"1","3","4"};
-        
+        expResult = new Object[]{"1", "3", "4"};
+
         result = instance.extractArguments(args, annotations);
-        
+
         assertArrayEquals(expResult, result);
-        
-        args = new Object [] {"1","2","3","4"};
+
+        args = new Object[]{"1", "2", "3", "4"};
         annotations = new Annotation[][]{{exclude}, {exclude}, {exclude}, {exclude}};
-        expResult = new Object [] {};
-        
+        expResult = new Object[]{};
+
         result = instance.extractArguments(args, annotations);
-        
+
         assertArrayEquals(expResult, result);
     }
 }
