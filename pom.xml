@@ -4,7 +4,7 @@
 
     <groupId>es.frnd</groupId>
     <artifactId>logging-annotation</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.1-SNAPSHOT</version>
     <name>logging-annotation</name>
     <description>Automatic logging system. Annotation for easy logging method calling on a program.</description>
     <url>https://github.com/frnd/logging-annotation</url>
