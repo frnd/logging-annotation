@@ -45,6 +45,14 @@ public class MessageCacheTest {
             return LogExclude.class;
         }
     };
+    
+    Annotation otherAnnotation = new LogExclude() {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Annotation.class;
+        }
+    };
+    
     Logging defaultLogAnnotation = new Logging() {
         @Override
         public String enterText() {
@@ -130,7 +138,7 @@ public class MessageCacheTest {
 
         type = MessageType.BEFORE;
         methodName = "methodName";
-        annotations = new Annotation[][]{{}, {exclude}, {}, {}};
+        annotations = new Annotation[][]{{otherAnnotation}, {otherAnnotation, exclude}, {}, {}};
         String expResult = "Calling method {} with args {} {} {}";
 
         String result = instance.getMessage(type, defaultLogAnnotation, methodName, annotations);

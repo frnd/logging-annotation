@@ -107,7 +107,10 @@ public class MessageCache {
     private static boolean containsExclude(Annotation[] annotations) {
         for (int i = 0; i < annotations.length; i++) {
             Annotation annotation = annotations[i];
-            return LogExclude.class.equals(annotation.annotationType());
+            boolean exclude = LogExclude.class.equals(annotation.annotationType());
+			if (exclude){
+				return true;
+			}
         }
         return false;
     }
